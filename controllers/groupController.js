@@ -122,4 +122,36 @@ const updateGroup = async (req, res) => {
     }
 };
 
-module.exports = { createGroup, getPublicGroups, updateGroup };
+// 그룹 삭제 함수
+const deleteGroup = async (req, res) => {
+    try {
+        const { groupId, password } = req.body;
+
+        // 필수 입력값 확인
+        if (!groupId || !password) {
+            return res.status(400).json({ message: "잘못된 요청입니다. groupId와 password는 필수 입력값입니다."});
+        }
+
+        // 그룹 정보 조회 (비밀번호 확인을 위해)
+        const [groupRows] = await db.promise().execute("SELECT password FROM `groups` WHERE groupId = ?", [groupId]);
+    
+        if (!groupRows || groupRows.length === 0) {
+            return res.status(404).json({ message: "존재하지 않습니다"});
+        }
+
+        // 입력된 비밀번호와 저장된 비밀번호 비교
+        const isMatch = await bcrypt.compare(password, groupRows[0].password);
+        if (!isMatch) {
+            return res.status(403).json({ message: "비밀번호가 틀렸습니다" });
+        }
+
+        // 그룹 삭제 쿼리 실행
+        await db.promise().execute("DELETE FROM `groups` WHERE groupId = ?", [groupId]);
+        return res.status(200).json({ message: "그룹 삭제 성공" });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: "서버 오류 발생", error: error.message });
+    }
+}
+
+module.exports = { createGroup, getPublicGroups, updateGroup, deleteGroup };
