@@ -1,12 +1,15 @@
 const express = require('express');
-const { createGroup, getPublicGroups, updateGroup, deleteGroup } = require('../controllers/groupController');
+const { createGroup, getGroupByPublicStatus, checkGroupAccess, updateGroup, deleteGroup } = require('../controllers/groupController');
 const router = express.Router();
 
 // 그룹 생성
 router.post('/', createGroup);
 
-// 공개 그룹 조회
-router.get('/public', getPublicGroups);
+// 그룹 공개 여부 확인
+router.get('/:groupId/public', getGroupByPublicStatus);
+
+// 그룹 접근 권한 확인
+router.post('/:groupId/access', checkGroupAccess);
 
 // 그룹 수정
 router.put('/', updateGroup);
