@@ -1,7 +1,8 @@
 const db = require("../db/db");
 const bcrypt = require("bcrypt");
 
-// 1. 게시글 등록
+// 게시글
+// 1. 등록
 const createPost = async (req, res) => {
   try {
     const {
@@ -78,7 +79,7 @@ const createPost = async (req, res) => {
   }
 };
 
-// 2. (한 그룹에 대한 전체) 게시글 목록 조회 (공개 게시글 전체)
+// 2. "전체" 목록 조회 (한 그룹 내 게시글 전체)
 const getPublicPosts = async (req, res) => {
   try {
     // 특정 그룹의 게시글만 가져올 수 있도록 groupId 찾기
@@ -112,7 +113,7 @@ const getPublicPosts = async (req, res) => {
   }
 };
 
-// 3. 게시글 상세 정보 조회 (게시글 하나)
+// 3. 상세 정보 조회 (게시글 하나)
 const getPostById = async (req, res) => {
   try {
     const { postId } = req.params;
@@ -136,7 +137,7 @@ const getPostById = async (req, res) => {
   }
 };
 
-// 4. 게시글 수정
+// 4. 수정
 const updatePost = async (req, res) => {
   try {
     //수정할 게시글 가져오기 from req.body
@@ -204,7 +205,7 @@ const updatePost = async (req, res) => {
   }
 };
 
-// 5. 게시글 삭제
+// 5. 삭제
 const deletePost = async (req, res) => {
   try {
     const { postId } = req.params;
@@ -248,10 +249,106 @@ const deletePost = async (req, res) => {
   }
 };
 
+// 6. 비밀번호 확인
+const verifyPostPassword = async (req, res) => {
+  try {
+    const { postId } = req.params;
+    const { password } = req.body;
+
+    // 필수 입력값 체크
+    if (!postId || !password) {
+      return res
+        .status(400)
+        .json({ message: "postId와 password는 필수 입력값입니다." });
+    }
+
+    // MySql database에서 게시글 비밀번호 조회
+    const [postRows] = await db
+      .promise()
+      .execute("SELECT password FROM posts WHERE postId = ?", [postId]);
+
+    if (!postRows || postRows.length === 0) {
+      return res
+        .status(404)
+        .json({ message: "해당 게시글을 찾을 수 없습니다." });
+    }
+
+    // 비교: 입력된 비밀번호 vs 저장된 비밀번호
+    const isMatch = await bcrypt.compare(password, postRows[0].password);
+    if (!isMatch) {
+      return res
+        .status(403)
+        .json({ message: "비밀번호가 틀렸습니다. 다시 확인해주세요. " });
+    }
+
+    return res.status(200).json({ message: "비밀번호가 확인되었습니다! " });
+  } catch (error) {
+    console.error(error);
+    return res
+      .status(500)
+      .json({ message: "서버(server) 오류 발생", error: error.message });
+  }
+};
+
+// 7. 공감 수 증가
+const likePost = async (req, res) => {
+  try {
+    const { postId } = req.params;
+
+    if (!postId) {
+      return res.status(400).json({ message: "postId는 필수 입력값입니다." });
+    }
+
+    // 공감 수 + 1
+    const sql = `UPDATE posts SET likesCount = likesCount + 1 WHERE postId = ?`;
+    await db.promise().execute(sql, [postId]);
+
+    return res.status(200).json({ message: "공감 수 + 1" });
+  } catch (error) {
+    console.errror(error);
+    return res
+      .status(500)
+      .json({ message: "서버(server) 오류 발생", error: error.message });
+  }
+};
+
+// 8. 게시글 공개 여부 ( isPublic : true 공개 or false 비공개)
+const checkPostPublicStatus = async (req, res) => {
+  try {
+    const { postId } = req.params;
+
+    if (!postId) {
+      return res.status(400).json({ message: "postId는 필수 입력값입니다." });
+    }
+
+    // postId에 해당하는 isPublic 값 가져온 후 -> postRows에 저장
+    const sql = "SELECT isPublic FROM posts WHERE postId = ?";
+    const [postRows] = await db.promise().execute(sql, [postId]);
+
+    // 데이터가 없는 경우
+    if (!postRows || postRows.length === 0) {
+      return res
+        .status(404)
+        .json({ message: "해당 게시글을 찾을 수 없습니다. " });
+    }
+
+    return res.status(200).json({ message: "공개 추억 게시글입니다. " });
+  } catch (error) {
+    console.errror(error);
+    return res
+      .status(500)
+      .json({ message: "서버(server) 오류 발생", error: error.message });
+  }
+};
+
 module.exports = {
-  createPost,
-  getPublicPosts,
-  getPostById,
-  updatePost,
-  deletePost,
+  // 게시글
+  createPost, // 1. 등록
+  getPublicPosts, // 2. 전체 목록 조회 (한 그룹 내 게시글 전체)
+  getPostById, // 3. 상세 정보 조회 (게시글 하나)
+  updatePost, // 4. 수정
+  deletePost, // 5. 삭제
+  verifyPostPassword, // 6. 비밀번호 확인인
+  likePost, // 7. 공감 수 증가가
+  checkPostPublicStatus, // 8. 게시글 공개 여부 : 공개 /비공개
 };

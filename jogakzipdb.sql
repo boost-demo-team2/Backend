@@ -101,3 +101,4 @@ ALTER TABLE comments ADD CONSTRAINT FK_posts_TO_comments_1 FOREIGN KEY (
 REFERENCES posts (
 	postId
 );
+

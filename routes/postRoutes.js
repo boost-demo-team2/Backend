@@ -5,29 +5,39 @@ const {
   getPostById,
   updatePost,
   deletePost,
+  verifyPostPassword,
+  likePost,
+  checkPostPublicStatus,
 } = require("../controllers/postController");
 
 const router = express.Router();
 
-// 1. 게시글 등록
+// 게시글
+
+// 1. 등록
 router.post("/groups/:groupId/posts", createPost);
 
-// 2. (한 그룹에 대한 전체) 게시글 목록 조회 (공개 게시글 전체)
+// 2. 전체 목록 조회 (한 그룹 내에서 게시글)
 router.get("/groups/:groupId/posts", getPublicPosts);
 
-// 3. 게시글 상세 정보 조회 (게시글 하나)
+// 3. 상세 정보 조회 (게시글 하나)
 router.get("/:postId", getPostById);
 
-// 4. 게시글 수정
+// 4. 수정
 router.put("/:postId", updatePost);
 
-// 5. 게시글 삭제
+// 5. 삭제
 router.delete("/:postId", deletePost);
 
-// 아래 기능 미완성+++++++++++++++++++++++++++++++++++++++++++++++
+// 기능 업데이트트+++++++++++++++++++++++++++++++++++++++++++++++
 
-// 6. verfy-password
-// 7. like
-// 8. is-public
+// 6. 비밀번호 확인
+router.post("/:postId/verify-password", verifyPostPassword);
+
+// 7. 공감 수 증가
+router.post("/:postId/like", likePost);
+
+// 8. 공개 여부 확인
+router.get("/:postId/is-public", checkPostPublicStatus);
 
 module.exports = router;
