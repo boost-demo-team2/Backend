@@ -82,34 +82,41 @@ const createPost = async (req, res) => {
 // 2. "전체" 목록 조회 (한 그룹 내 게시글 전체)
 const getPublicPosts = async (req, res) => {
   try {
-    // 특정 그룹의 게시글만 가져올 수 있도록 groupId 찾기
     const { groupId } = req.params;
 
-    // 공개 게시글만 조회
-    let sql = ` SELECT postId, groupId, nickname, title, image, tags, location, moment, isPublic, likesCount, commentsCount, createdAt
-                    FROM posts
-                    WHERE isPublic = true`;
-
-    // groupId를 가지고 특정 그룹 게시글만 조회
-    let values = [];
-    if (groupId) {
-      sql += ` AND groupId = ?`;
-      values.push(groupId);
+    // 그룹 ID가 숫자인지 검증
+    if (!groupId || isNaN(groupId)) {
+      return res.status(400).json({ message: "올바른 groupId가 필요합니다." });
     }
 
-    //최신순 정렬
-    sql += ` ORDER BY createdAt DESC`;
+    // SQL 쿼리: 특정 그룹에 해당하는 공개된 게시글만 가져오기
+    const sql = `
+      SELECT postId, groupId, nickname, title, image, tags, location, moment, isPublic, likesCount, commentsCount, createdAt
+      FROM posts
+      WHERE groupId = ? AND isPublic = true
+      ORDER BY createdAt DESC
+    `;
 
-    const [rows] = await db.promise().execute(sql, values);
+    console.log(`🔍 DEBUG: getPublicPosts 실행됨 - groupId: ${groupId}`);
+
+    const [rows] = await db.promise().execute(sql, [groupId]);
+
+    console.log(`🔍 DEBUG: 조회된 게시글 개수: ${rows.length}`);
+
+    if (rows.length === 0) {
+      return res
+        .status(200)
+        .json({ message: "해당 그룹에 공개 게시글이 없습니다.", data: [] });
+    }
 
     return res
       .status(200)
       .json({ message: "공개 게시글 조회에 성공했습니다.", data: rows });
   } catch (error) {
-    console.log(error);
+    console.error("❌ getPublicPosts 오류 발생:", error);
     return res
       .status(500)
-      .json({ message: "서버(server) 오류 발생", error: error.message });
+      .json({ message: "서버 오류 발생", error: error.message });
   }
 };
 
