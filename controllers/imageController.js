@@ -32,13 +32,17 @@ const uploadImage = (req, res) => {
       return res.status(400).json({ message: "No image uploaded" });
     }
 
+    console.log("업로드된 파일 정보 확인용:", req.file);
+
     // 업로드된 파일의 URL 생성 (원래 파일명 그대로 유지됨)
     const imageUrl = `http://localhost:3000/uploads/${req.file.filename}`;
 
     return res.status(200).json({ imageUrl });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: "서버 오류 발생", error: error.message });
+    return res
+      .status(500)
+      .json({ message: "서버 오류 발생", error: error.message });
   }
 };
 

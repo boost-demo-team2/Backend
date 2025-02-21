@@ -144,8 +144,8 @@ POST http://localhost:3000/api/image
 Content-Type: multipart/form-data; boundary=boundary123
 
 --boundary123
-Content-Disposition: form-data; name="image"; filename="juri.png"
+Content-Disposition: form-data; name="image"; filename="testImage.png"
 Content-Type: image/png
 
-< ./juri.png
+< C:\Users\juyeo\Desktop\testImage.png
 --boundary123--
