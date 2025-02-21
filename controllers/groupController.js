@@ -8,12 +8,9 @@ const createGroup = async (req, res) => {
 
     // 필수 필드 확인
     if (!groupName || typeof isPublic !== "boolean" || !password) {
-      return res
-        .status(400)
-        .json({
-          message:
-            "groupName, isPublic(boolean), password는 필수 입력값입니다.",
-        });
+      return res.status(400).json({
+        message: "groupName, isPublic(boolean), password는 필수 입력값입니다.",
+      });
     }
 
     // 비밀번호 길이 체크
@@ -44,12 +41,10 @@ const createGroup = async (req, res) => {
       throw new Error("Insert operation failed.");
     }
 
-    return res
-      .status(201)
-      .json({
-        message: "그룹이 성공적으로 생성되었습니다.",
-        groupId: rows.insertId,
-      });
+    return res.status(201).json({
+      message: "그룹이 성공적으로 생성되었습니다.",
+      groupId: rows.insertId,
+    });
   } catch (error) {
     console.error(error);
     return res
@@ -58,7 +53,7 @@ const createGroup = async (req, res) => {
   }
 };
 
-// 그룹 공개 여부 확인 함수
+// 그룹 공개 여부 확인 함수 (맞으면 그룹 전체 반환)
 const getGroupByPublicStatus = async (req, res) => {
   try {
     const { groupId } = req.params;
@@ -99,7 +94,7 @@ const getGroupByPublicStatus = async (req, res) => {
   }
 };
 
-// 비공개 그룹 조회 함수
+// 비공개 그룹 조회 함수 (비그룹 그룹에 해당되는 그룹 전체 반환환)
 const checkGroupAccess = async (req, res) => {
   try {
     const { groupId } = req.params;
@@ -132,12 +127,38 @@ const checkGroupAccess = async (req, res) => {
     const sqlGroups = "SELECT * FROM `groups` WHERE groupId = ?";
     const [groups] = await db.promise().execute(sqlGroups, [groupId]);
 
+    return res.status(200).json({
+      message: "비밀번호 확인 완료. 그룹 정보 조회 성공",
+      data: groups,
+    });
+  } catch (error) {
+    console.error(error);
     return res
-      .status(200)
-      .json({
-        message: "비밀번호 확인 완료. 그룹 정보 조회 성공",
-        data: groups,
-      });
+      .status(500)
+      .json({ message: "서버 오류 발생", error: error.message });
+  }
+};
+
+// *****추가: 그룹 (하나) 상세 조회 함수
+const getGroupDetail = async (req, res) => {
+  try {
+    const { groupId } = req.params;
+
+    if (!groupId) {
+      return res.status(400).json({ message: "groupId는 필수 입력값입니다." });
+    }
+
+    const sql = "SELECT * FROM `groups` WHERE groupId = ?";
+    const [groupRows] = await db.promise().execute(sql, [groupId]);
+
+    if (!groupRows || groupRows.length === 0) {
+      return res.status(404).json({ message: "해당 그룹을 찾을 수 없습니다." });
+    }
+
+    return res.status(200).json({
+      message: "그룹 상세 정보 조회 성공",
+      data: groupRows[0], // 단일 객체 반환
+    });
   } catch (error) {
     console.error(error);
     return res
@@ -226,11 +247,9 @@ const deleteGroup = async (req, res) => {
 
     // 필수 입력값 확인
     if (!groupId || !password) {
-      return res
-        .status(400)
-        .json({
-          message: "잘못된 요청입니다. groupId와 password는 필수 입력값입니다.",
-        });
+      return res.status(400).json({
+        message: "잘못된 요청입니다. groupId와 password는 필수 입력값입니다.",
+      });
     }
 
     // 그룹 정보 조회 (비밀번호 확인을 위해)
@@ -265,6 +284,7 @@ module.exports = {
   createGroup,
   getGroupByPublicStatus,
   checkGroupAccess,
+  getGroupDetail,
   updateGroup,
   deleteGroup,
 };

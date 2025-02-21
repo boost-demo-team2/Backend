@@ -121,7 +121,7 @@ const getPublicPosts = async (req, res) => {
 };
 
 // 3. 상세 정보 조회 (게시글 하나)
-const getPostById = async (req, res) => {
+const getPostDetail = async (req, res) => {
   try {
     const { postId } = req.params;
 
@@ -351,8 +351,8 @@ const checkPostPublicStatus = async (req, res) => {
 module.exports = {
   // 게시글
   createPost, // 1. 등록
-  getPublicPosts, // 2. 전체 목록 조회 (한 그룹 내 게시글 전체)
-  getPostById, // 3. 상세 정보 조회 (게시글 하나)
+  getPublicPosts, // 2. 전체 목록 조회 (게시글 전체)
+  getPostDetail, // 3. 상세 정보 조회 (게시글 하나)
   updatePost, // 4. 수정
   deletePost, // 5. 삭제
   verifyPostPassword, // 6. 비밀번호 확인인

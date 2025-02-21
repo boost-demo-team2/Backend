@@ -16,9 +16,9 @@ app.use(
   })
 );
 
-app.use("/groups", groupRoutes);
-app.use("/posts", postRoutes);
-app.use("/comments", commentRoutes); // 댓글 라우트 추가
+app.use("api/groups", groupRoutes); // 수정: "/groups" → "/api/groups"
+app.use("api/posts", postRoutes); // 수정: "/posts" → "/api/posts"
+app.use("api/comments", commentRoutes); // 수정 : "/comments" → "/api/comments"
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
