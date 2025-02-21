@@ -36,10 +36,10 @@ const {
 const router = express.Router();
 
 // 댓글 등록
-router.post("/posts/:postId/comments", createComment);
+router.post("/:postId/comments", createComment);
 
 // 댓글 목록 조회
-router.get("/posts/:postId/comments", getCommentsByPostId);
+router.get("/:postId/comments", getCommentsByPostId);
 
 // 댓글 수정
 router.put("/:commentId", updateComment); ///************************ 기존 "/comments/:commentId" → "/:commentId" 변경

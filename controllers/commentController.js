@@ -7,6 +7,7 @@ const createComment = async (req, res) => {
   try {
     const { postId } = req.params;
     const { nickname, content, password } = req.body;
+  
 
     // 필수 입력값 체크 content not null로 설정!
     if (!postId || !nickname || !content || !password) {
@@ -42,6 +43,7 @@ const createComment = async (req, res) => {
 const getCommentsByPostId = async (req, res) => {
   try {
     const { postId } = req.params;
+    console.log("Received postId:", postId); // 디버깅 로그
 
     const sql = `
         SELECT commentId, nickname, content, createdAt

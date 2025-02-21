@@ -29,7 +29,7 @@ router.put("/:postId", updatePost);
 // 5. 삭제
 router.delete("/:postId", deletePost);
 
-// 기능 업데이트트+++++++++++++++++++++++++++++++++++++++++++++++
+// 기능 업데이트+++++++++++++++++++++++++++++++++++++++++++++++
 
 // 6. 비밀번호 확인
 router.post("/:postId/verify-password", verifyPostPassword);

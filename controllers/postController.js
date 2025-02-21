@@ -356,6 +356,6 @@ module.exports = {
   updatePost, // 4. 수정
   deletePost, // 5. 삭제
   verifyPostPassword, // 6. 비밀번호 확인인
-  likePost, // 7. 공감 수 증가가
+  likePost, // 7. 공감 수 증가
   checkPostPublicStatus, // 8. 게시글 공개 여부 : 공개 /비공개
 };

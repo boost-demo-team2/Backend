@@ -1,34 +1,15 @@
-const path = require("path");
 const multer = require("multer");
+const path = require("path");
 
-//  파일명 유지하도록 `storage` 설정
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "uploads/"); // 업로드 폴더 지정
-  },
-  filename: (req, file, cb) => {
-    cb(null, file.originalname); // 기존 파일명을 그대로 사용
-  },
-});
-
-//  업로드 제한 (파일 사이즈 & MIME 타입 검사)
-const upload = multer({
-  storage: storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 최대 5MB
-  fileFilter: (req, file, cb) => {
-    const allowedTypes = ["image/jpeg", "image/png", "image/gif"];
-    if (allowedTypes.includes(file.mimetype)) {
-      cb(null, true);
-    } else {
-      cb(new Error("Only .jpg, .png, .gif formats allowed!"));
-    }
-  },
-});
+// multer 설정 (메모리 저장 방식)
+const storage = multer.memoryStorage();
+const upload = multer({ storage });
 
 // 이미지 업로드 컨트롤러
-const uploadImage = (req, res) => {
+const uploadImage = async (req, res) => {
   try {
     if (!req.file) {
+      console.error("❌ No file uploaded");
       return res.status(400).json({ message: "No image uploaded" });
     }
 
@@ -46,4 +27,5 @@ const uploadImage = (req, res) => {
   }
 };
 
+// `upload`와 `uploadImage`를 올바르게 export
 module.exports = { upload, uploadImage };

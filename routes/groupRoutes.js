@@ -7,11 +7,13 @@ const {
   getGroupDetail,
   checkGroupAccess,
   likeGroup,
-  getGroupPublicStatus
+  getGroupPublicStatus,
+
 } = require("../controllers/groupController");
+
 const router = express.Router();
 
-// 1. 그룹 등록록
+// 1. 그룹 등록
 router.post("/", createGroup);
 
 // 2. 그룹 목록 조회
