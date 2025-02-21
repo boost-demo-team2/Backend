@@ -16,9 +16,19 @@ app.use(
   })
 );
 
-app.use("api/groups", groupRoutes); // 수정: "/groups" → "/api/groups"
-app.use("api/posts", postRoutes); // 수정: "/posts" → "/api/posts"
-app.use("api/comments", commentRoutes); // 수정 : "/comments" → "/api/comments"
+app.use("/api/groups", groupRoutes); // 수정: "/groups" → "/api/groups"
+app.use("/api/posts", postRoutes); // 수정: "/posts" → "/api/posts"
+app.use("/api/comments", commentRoutes); // 수정 : "/comments" → "/api/comments"
+
+// ✅ 기본 루트 응답 (서버 상태 확인용)
+app.get("/", (req, res) => {
+  res.status(200).json({ message: "Welcome to the API!" });
+});
+
+// ✅ 404 처리 (없는 API 요청)
+app.use((req, res) => {
+  res.status(404).json({ message: "API Not Found" });
+});
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

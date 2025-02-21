@@ -2,7 +2,7 @@ const express = require("express");
 const {
   createPost,
   getPublicPosts,
-  getPostById,
+  getPostDetail,
   updatePost,
   deletePost,
   verifyPostPassword,
@@ -21,7 +21,7 @@ router.post("/groups/:groupId/posts", createPost);
 router.get("/groups/:groupId/posts", getPublicPosts);
 
 // 3. 상세 정보 조회 (게시글 하나)
-router.get("/:postId", getPostById);
+router.get("/:postId", getPostDetail);
 
 // 4. 수정
 router.put("/:postId", updatePost);
