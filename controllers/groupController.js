@@ -5,7 +5,10 @@ const bcrypt = require("bcrypt");
 // 1. 그룹 생성 함수
 const createGroup = async (req, res) => {
   try {
-    const { groupName, password, image, isPublic, description } = req.body;
+    const { groupName, password, isPublic, description } = req.body;
+    const imageUrl = req.file ? `/uploads/${req.file.filename}` : null; // 이미지 업로드
+
+    console.log("✅ 그룹 생성 시 저장할 이미지 URL:", imageUrl); // ✅ 디버깅용 로그 추가
 
     // 필수 입력값 확인
     if (!groupName || !password || typeof isPublic !== "boolean") {
@@ -29,7 +32,13 @@ const createGroup = async (req, res) => {
       INSERT INTO \`groups\` (groupName, password, image, isPublic, description, createdAt) 
       VALUES (?, ?, ?, ?, ?, NOW())`;
 
-    const values = [groupName, hashedPassword, image || null, isPublic, description || null];
+    const values = [
+      groupName,
+      hashedPassword,
+      imageUrl || null,
+      isPublic,
+      description || null,
+    ];
 
     const [result] = await db.promise().execute(sql, values);
 
@@ -50,7 +59,7 @@ const createGroup = async (req, res) => {
               0 AS postCount, 
               JSON_ARRAY() AS badges, 
               createdAt 
-       FROM \`groups\` WHERE groupId = ?`, 
+       FROM \`groups\` WHERE groupId = ?`,
       [groupId]
     );
 
@@ -64,14 +73,15 @@ const createGroup = async (req, res) => {
       likeCount: newGroup[0].likeCount,
       postCount: newGroup[0].postCount,
       badges: newGroup[0].badges, // `badges` 추가
-      createdAt: newGroup[0].createdAt
+      createdAt: newGroup[0].createdAt,
     };
 
     return res.status(201).json(formattedResponse);
-
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: "서버 오류 발생", error: error.message });
+    return res
+      .status(500)
+      .json({ message: "서버 오류 발생", error: error.message });
   }
 };
 
@@ -139,29 +149,34 @@ const getGroupList = async (req, res) => {
       totalItemCount: groups.length,
       data: groups,
     });
-
   } catch (error) {
     console.error("SQL 실행 오류:", error);
-    return res.status(500).json({ message: "서버 오류 발생", error: error.message });
+    return res
+      .status(500)
+      .json({ message: "서버 오류 발생", error: error.message });
   }
 };
 
 // 3. 그룹 수정
 const updateGroup = async (req, res) => {
   try {
-    const { groupId } = req.params;  // `req.body.groupId` → `req.params.groupId`로 수정
-    const { password, groupName, image, description, isPublic } = req.body;
+    const { groupId } = req.params; // `req.body.groupId` → `req.params.groupId`로 수정
+    const { password, groupName, description, isPublic } = req.body;
+    4;
+    //## 업로드된 image 파일 업데이트(변경)
+    const imageUrl = req.file ? `/uploads/${req.file.filename}` : null;
 
     // 필수 입력값 확인
     if (!groupId || !password) {
-      return res.status(400).json({ message: "groupId와 password는 필수 입력값입니다." });
+      return res
+        .status(400)
+        .json({ message: "groupId와 password는 필수 입력값입니다." });
     }
 
     // 그룹 정보 조회 (비밀번호 확인을 위해)
-    const [groupRows] = await db.promise().execute(
-      "SELECT * FROM `groups` WHERE groupId = ?",
-      [groupId]
-    );
+    const [groupRows] = await db
+      .promise()
+      .execute("SELECT * FROM `groups` WHERE groupId = ?", [groupId]);
 
     if (!groupRows || groupRows.length === 0) {
       return res.status(404).json({ message: "해당 그룹을 찾을 수 없습니다." });
@@ -183,7 +198,7 @@ const updateGroup = async (req, res) => {
       updateFields.push("groupName = ?");
       values.push(groupName);
     }
-    if (image) {
+    if (imageUrl) {
       updateFields.push("image = ?");
       values.push(image);
     }
@@ -201,18 +216,24 @@ const updateGroup = async (req, res) => {
       updateFields.push("updatedAt = NOW()");
       values.push(groupId);
 
-      const sql = `UPDATE \`groups\` SET ${updateFields.join(", ")} WHERE groupId = ?`;
+      const sql = `UPDATE \`groups\` SET ${updateFields.join(
+        ", "
+      )} WHERE groupId = ?`;
       await db.promise().execute(sql, values);
     }
 
     // 수정된 그룹 정보를 다시 조회
-    const [updatedGroupRows] = await db.promise().execute(
-      "SELECT groupId AS id, groupName AS name, image AS imageUrl, isPublic, likesCount, postCount, createdAt, description FROM `groups` WHERE groupId = ?",
-      [groupId]
-    );
+    const [updatedGroupRows] = await db
+      .promise()
+      .execute(
+        "SELECT groupId AS id, groupName AS name, image AS imageUrl, isPublic, likesCount, postCount, createdAt, description FROM `groups` WHERE groupId = ?",
+        [groupId]
+      );
 
     if (!updatedGroupRows || updatedGroupRows.length === 0) {
-      return res.status(500).json({ message: "그룹 정보를 다시 불러올 수 없습니다." });
+      return res
+        .status(500)
+        .json({ message: "그룹 정보를 다시 불러올 수 없습니다." });
     }
 
     const updatedGroup = updatedGroupRows[0];
@@ -230,10 +251,11 @@ const updateGroup = async (req, res) => {
     });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: "서버 오류 발생", error: error.message });
+    return res
+      .status(500)
+      .json({ message: "서버 오류 발생", error: error.message });
   }
 };
-
 
 // 4. 그룹 삭제
 const deleteGroup = async (req, res) => {
@@ -264,12 +286,16 @@ const deleteGroup = async (req, res) => {
     }
 
     // 그룹 삭제 쿼리 실행
-    await db.promise().execute("DELETE FROM `groups` WHERE groupId = ?", [groupId]);
-    
+    await db
+      .promise()
+      .execute("DELETE FROM `groups` WHERE groupId = ?", [groupId]);
+
     return res.status(200).json({ message: "그룹 삭제 성공" });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: "서버 오류 발생", error: error.message });
+    return res
+      .status(500)
+      .json({ message: "서버 오류 발생", error: error.message });
   }
 };
 
@@ -286,10 +312,12 @@ const getGroupDetail = async (req, res) => {
     const numericGroupId = Number(groupId); // 문자열을 숫자로 변환
 
     // 그룹 정보 조회
-    const [groupRows] = await db.promise().execute(
-      "SELECT groupId AS id, groupName AS name, image AS imageUrl, isPublic, likesCount AS likeCount, postCount, createdAt, description AS introduction FROM `groups` WHERE groupId = ?",
-      [numericGroupId]
-    );
+    const [groupRows] = await db
+      .promise()
+      .execute(
+        "SELECT groupId AS id, groupName AS name, image AS imageUrl, isPublic, likesCount AS likeCount, postCount, createdAt, description AS introduction FROM `groups` WHERE groupId = ?",
+        [numericGroupId]
+      );
 
     if (!groupRows || groupRows.length === 0) {
       return res.status(404).json({ message: "해당 그룹을 찾을 수 없습니다." });
@@ -311,7 +339,9 @@ const getGroupDetail = async (req, res) => {
     });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: "서버 오류 발생", error: error.message });
+    return res
+      .status(500)
+      .json({ message: "서버 오류 발생", error: error.message });
   }
 };
 
@@ -329,10 +359,11 @@ const checkGroupAccess = async (req, res) => {
     const numericGroupId = Number(groupId); // `groupId`를 숫자로 변환
 
     // 그룹 정보 조회 (비밀번호 확인을 위해)
-    const [groupRows] = await db.promise().execute(
-      "SELECT password FROM `groups` WHERE groupId = ?",
-      [numericGroupId]
-    );
+    const [groupRows] = await db
+      .promise()
+      .execute("SELECT password FROM `groups` WHERE groupId = ?", [
+        numericGroupId,
+      ]);
 
     if (!groupRows || groupRows.length === 0) {
       return res.status(404).json({ message: "해당 그룹을 찾을 수 없습니다." });
@@ -348,10 +379,11 @@ const checkGroupAccess = async (req, res) => {
 
     // 비밀번호가 맞으면 성공 응답 반환
     return res.status(200).json({ message: "비밀번호가 확인되었습니다" });
-
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: "서버 오류 발생", error: error.message });
+    return res
+      .status(500)
+      .json({ message: "서버 오류 발생", error: error.message });
   }
 };
 
@@ -362,16 +394,20 @@ const likeGroup = async (req, res) => {
 
     // `groupId`가 숫자가 맞는지 확인
     if (!groupId || isNaN(Number(groupId))) {
-      return res.status(400).json({ message: "잘못된 요청입니다. groupId는 필수 입력값이며 숫자여야 합니다." });
+      return res.status(400).json({
+        message:
+          "잘못된 요청입니다. groupId는 필수 입력값이며 숫자여야 합니다.",
+      });
     }
 
     const numericGroupId = Number(groupId); // `groupId`를 숫자로 변환
 
     // 그룹 존재 여부 확인
-    const [groupRows] = await db.promise().execute(
-      "SELECT likesCount FROM `groups` WHERE groupId = ?",
-      [numericGroupId]
-    );
+    const [groupRows] = await db
+      .promise()
+      .execute("SELECT likesCount FROM `groups` WHERE groupId = ?", [
+        numericGroupId,
+      ]);
 
     if (!groupRows || groupRows.length === 0) {
       return res.status(404).json({ message: "해당 그룹을 찾을 수 없습니다." });
@@ -382,10 +418,11 @@ const likeGroup = async (req, res) => {
     await db.promise().execute(sql, [numericGroupId]);
 
     return res.status(200).json({ message: "그룹 공감 수가 증가되었습니다." });
-
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: "서버 오류 발생", error: error.message });
+    return res
+      .status(500)
+      .json({ message: "서버 오류 발생", error: error.message });
   }
 };
 
@@ -402,10 +439,12 @@ const getGroupPublicStatus = async (req, res) => {
     const numericGroupId = Number(groupId); // `groupId`를 숫자로 변환
 
     //  그룹 정보 조회 (isPublic 여부 확인)
-    const [groupRows] = await db.promise().execute(
-      "SELECT groupId AS id, isPublic FROM `groups` WHERE groupId = ?",
-      [numericGroupId]
-    );
+    const [groupRows] = await db
+      .promise()
+      .execute(
+        "SELECT groupId AS id, isPublic FROM `groups` WHERE groupId = ?",
+        [numericGroupId]
+      );
 
     //  그룹이 존재하지 않을 경우
     if (!groupRows || groupRows.length === 0) {
@@ -419,10 +458,11 @@ const getGroupPublicStatus = async (req, res) => {
       id: group.id,
       isPublic: group.isPublic,
     });
-
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: "서버 오류 발생", error: error.message });
+    return res
+      .status(500)
+      .json({ message: "서버 오류 발생", error: error.message });
   }
 };
 
@@ -434,5 +474,5 @@ module.exports = {
   getGroupDetail,
   checkGroupAccess,
   likeGroup,
-  getGroupPublicStatus
+  getGroupPublicStatus,
 };
