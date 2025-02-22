@@ -44,7 +44,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
-// 이미지 업로드 컨트롤러
+// 이미지 업로드 컨트롤러  //await - async
 const uploadImage = async (req, res) => {
   try {
     if (!req.file) {
