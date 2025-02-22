@@ -17,13 +17,18 @@ app.use(
   })
 );
 
-
 app.use("/uploads", express.static("uploads")); // 추가: 정적 파일 제공
+
+// ✅ 모든 요청 로깅 추가
+app.use((req, res, next) => {
+  console.log(`📢 [${req.method}] 요청: ${req.url}`);
+  next();
+});
 
 app.use("/api/groups", groupRoutes); // 수정: "/groups" → "/api/groups"
 app.use("/api/posts", postRoutes); // 수정: "/posts" → "/api/posts"
 app.use("/api/comments", commentRoutes); // 수정 : "/comments" → "/api/comments"
-app.use("/api/image", imageRoutes); // 추가: 이미지 업로드 라우트 
+app.use("/api/image", imageRoutes); // 추가: 이미지 업로드 라우트
 
 // 기본 루트 응답 (서버 상태 확인용)
 app.get("/", (req, res) => {
