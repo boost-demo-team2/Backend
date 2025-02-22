@@ -9,7 +9,7 @@
 // const uploadImage = async (req, res) => {
 //   try {
 //     if (!req.file) {
-//       console.error("❌ No file uploaded");
+//       console.error(" No file uploaded");
 //       return res.status(400).json({ message: "No image uploaded" });
 //     }
 

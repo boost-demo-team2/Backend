@@ -6,6 +6,9 @@ const bcrypt = require("bcrypt");
 const createGroup = async (req, res) => {
   try {
     const { groupName, password, isPublic, description } = req.body;
+
+    console.log("📂 업로드된 파일 정보:", req.file); // ✅ req.file이 undefined인지 확인
+
     const imageUrl = req.file ? `/uploads/${req.file.filename}` : null; // 이미지 업로드
 
     console.log("✅ 그룹 생성 시 저장할 이미지 URL:", imageUrl); // ✅ 디버깅용 로그 추가
